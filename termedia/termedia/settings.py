@@ -62,9 +62,13 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
+ITEM_PIPELINES = {
 #    "termedia.pipelines.TermediaPipeline": 300,
-#}
+    "scrapy.pipelines.files.FilesPipeline": 1,
+}
+
+FILES_STORE = "pdf"
+MEDIA_ALLOW_REDIRECTS = True
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

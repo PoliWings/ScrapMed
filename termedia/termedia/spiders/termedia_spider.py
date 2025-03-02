@@ -1,5 +1,6 @@
 import scrapy
 from urllib.parse import urlparse
+from termedia.items import TermediaItem
 
 class TermediaSpiderSpider(scrapy.Spider):
     name = "termedia_spider"
@@ -35,8 +36,12 @@ class TermediaSpiderSpider(scrapy.Spider):
             if volume.endswith(".pdf"):
                 if volume.startswith("/"):
                     base_url = urlparse(response.url).netloc
-                    volume = base_url + volume
-                yield {"type": "whole_volume_in_pdf", "url": volume}
+                    scheme = urlparse(response.url).scheme
+                    volume = scheme + "://" + base_url + volume
+                item = TermediaItem()
+                item["type"] = "whole_volume_in_pdf"
+                item["file_urls"] = [volume]
+                yield item
             else:
                 yield response.follow(volume, self.parse_volume)
 
@@ -46,22 +51,30 @@ class TermediaSpiderSpider(scrapy.Spider):
         # button to download whole volume
         whole_volume_url = response.css("a.issuePdfButton::attr(href)").get()
         if whole_volume_url:
-            yield {"type": "whole_volume_in_pdf", "url": whole_volume_url}
+            item = TermediaItem()
+            item["type"] = "whole_volume_in_pdf"
+            item["file_urls"] = [whole_volume_url]
+            yield item
         else:
-            articles = response.css("div.magArticle").getall()
+            articles = response.css("div.magArticle")
             if len(articles) == 0:
-                articles = response.css("div.magArticleNoBorder").getall()
+                articles = response.css("div.magArticleNoBorder")
             # yield {"type": "list_of_articles", "url": response.url, "articles": len(articles)}
             for article in articles:
-                title = article.css("h2").get()
+                title = article.css("h2::text").get()
                 url = article.css("a.magFullT::attr(href)").get()
                 # list of pdf articles
                 if url.endswith(".pdf"):
                     # relative url
                     if url.startswith("/"):
                         base_url = urlparse(response.url).netloc
-                        url = base_url + url
-                    yield {"type": "article_pdf", "url": url, "title": title}
+                        scheme = urlparse(response.url).scheme
+                        url = scheme + "://" + base_url + url
+                    item = TermediaItem()
+                    item["type"] = "article_pdf"
+                    item["file_urls"] = [url]
+                    item["title"] = title
+                    yield item
                 # list of article pages
                 elif url:
                     yield response.follow(url, self.parse_article, meta={"title": title})
@@ -71,7 +84,12 @@ class TermediaSpiderSpider(scrapy.Spider):
         # relative url
         if pdf_url.startswith("/"):
             base_url = urlparse(response.url).netloc
-            pdf_url = base_url + pdf_url
+            scheme = urlparse(response.url).scheme
+            pdf_url = scheme + "://" + base_url + pdf_url
         title = response.meta.get("title")
-        yield {"type": "article_pdf", "url": pdf_url, "title": title}
+        item = TermediaItem()
+        item["type"] = "article_pdf"
+        item["file_urls"] = [pdf_url]
+        item["title"] = title
+        yield item
                 
