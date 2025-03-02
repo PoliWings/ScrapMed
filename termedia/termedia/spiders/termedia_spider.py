@@ -48,17 +48,30 @@ class TermediaSpiderSpider(scrapy.Spider):
         if whole_volume_url:
             yield {"type": "whole_volume_in_pdf", "url": whole_volume_url}
         else:
-            articles = response.css("a.magFullT::attr(href)").getall()
+            articles = response.css("div.magArticle").getall()
+            if len(articles) == 0:
+                articles = response.css("div.magArticleNoBorder").getall()
             # yield {"type": "list_of_articles", "url": response.url, "articles": len(articles)}
             for article in articles:
+                title = article.css("h2").get()
+                url = article.css("a.magFullT::attr(href)").get()
                 # list of pdf articles
-                if article.endswith(".pdf"):
-                    yield {"type": "article_pdf", "url": article}
+                if url.endswith(".pdf"):
+                    # relative url
+                    if url.startswith("/"):
+                        base_url = urlparse(response.url).netloc
+                        url = base_url + url
+                    yield {"type": "article_pdf", "url": url, "title": title}
                 # list of article pages
-                else:
-                    yield response.follow(article, self.parse_article)
+                elif url:
+                    yield response.follow(url, self.parse_article, meta={"title": title})
     
     def parse_article(self, response):
         pdf_url = response.css("div.articlePDF").css("a::attr(href)").get()
-        yield {"type": "article_pdf", "url": pdf_url}
+        # relative url
+        if pdf_url.startswith("/"):
+            base_url = urlparse(response.url).netloc
+            pdf_url = base_url + pdf_url
+        title = response.meta.get("title")
+        yield {"type": "article_pdf", "url": pdf_url, "title": title}
                 
