@@ -1,0 +1,14 @@
+services:
+  grobid:
+    # grobid/grobid:0.8.1 - full image
+    image: lfoppiano/grobid:0.8.1
+    ports:
+      - "8070:8070"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ gpu ]
+    init: true
+    ulimits:
+      core: 0
