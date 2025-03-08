@@ -32,7 +32,7 @@ print(f"List of files not processed:")
 for file in os.listdir(output_dir):
     if file.endswith(".txt"):
         bad_file = file.split("_")[0] + ".pdf"
-        os.makedirs("bad_files", exist_ok=True)
-        os.rename(os.path.join(input_dir, bad_file), os.path.join("bad_files", bad_file))
-        os.rename(os.path.join(output_dir, file), os.path.join("bad_files", file))
+        os.makedirs("corrupted", exist_ok=True)
+        os.rename(os.path.join(input_dir, bad_file), os.path.join("corrupted", bad_file))
+        os.rename(os.path.join(output_dir, file), os.path.join("corrupted", file))
         print(bad_file)
