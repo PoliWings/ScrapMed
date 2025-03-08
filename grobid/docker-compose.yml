@@ -1,6 +1,7 @@
 services:
   grobid:
-    image: grobid/grobid:0.8.1
+    # grobid/grobid:0.8.1 - full image
+    image: lfoppiano/grobid:0.8.1
     ports:
       - "8070:8070"
     deploy:
