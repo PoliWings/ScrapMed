@@ -6,5 +6,5 @@ corrupted
 input
 output
 *.json
-*.pdf
+pdf
 *.log
