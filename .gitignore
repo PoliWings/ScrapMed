@@ -1,6 +1,11 @@
 .idea
+env
+venv
+__pycache__
 corrupted
 input
 output
 parsed
-venv
+*.json
+pdf
+*.log
