@@ -1,5 +1,10 @@
+.idea
 env
+venv
 __pycache__
+corrupted
+input
+output
 *.json
-pdf
+*.pdf
 *.log
