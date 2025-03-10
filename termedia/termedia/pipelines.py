@@ -10,4 +10,7 @@ from itemadapter import ItemAdapter
 
 class TermediaPipeline:
     def process_item(self, item, spider):
+        adapter = ItemAdapter(item)
+        if adapter.get("title"):
+            adapter["title"] = " ".join(adapter["title"]).strip()
         return item

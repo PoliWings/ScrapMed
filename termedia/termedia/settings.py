@@ -63,7 +63,7 @@ ROBOTSTXT_OBEY = True
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-#    "termedia.pipelines.TermediaPipeline": 300,
+    "termedia.pipelines.TermediaPipeline": 300,
     "scrapy.pipelines.files.FilesPipeline": 1,
 }
 

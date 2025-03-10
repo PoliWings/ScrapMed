@@ -61,7 +61,7 @@ class TermediaSpiderSpider(scrapy.Spider):
                 articles = response.css("div.magArticleNoBorder")
             # yield {"type": "list_of_articles", "url": response.url, "articles": len(articles)}
             for article in articles:
-                title = article.css("h2::text").get()
+                title = article.css("h2::text").getall()
                 url = article.css("a.magFullT::attr(href)").get()
                 # list of pdf articles
                 if url.endswith(".pdf"):
