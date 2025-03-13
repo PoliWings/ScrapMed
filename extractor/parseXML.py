@@ -10,6 +10,8 @@ import threading
 
 DetectorFactory.seed = 0
 
+MIN_CONTENT_LENGTH = 500
+EXCLUDED_PHRASE = "wszelkie prawa zastrzeżone"
 
 def process_divs(element, ns, stop_event):
     text_content = ""
@@ -26,11 +28,10 @@ def process_divs(element, ns, stop_event):
                             text_content += sentence.strip() + " "
                 except Exception as e:
                     print(f"Language detection failed for sentence: {e}")
-            text_content += "\n"
+            if text_content: 
+                text_content += "\n"
 
-    if text_content:
-        return text_content
-    return ""
+    return text_content.strip()
 
 
 def process_file(filename, input_folder, output_folder, ns, stop_event):
@@ -64,8 +65,17 @@ def process_file(filename, input_folder, output_folder, ns, stop_event):
 
         if stop_event.is_set():
             return
+        
+        full_text = "\n".join(article_content).strip()
+        if len(full_text) < MIN_CONTENT_LENGTH:
+            print(f"Skipped {filename} because content is too short.")
+            return None
+        
+        if EXCLUDED_PHRASE in full_text.lower():
+            print(f"Skipped {filename} because it contains restricted rights notice.")
+            return None
 
-        if article_content and any(content.strip() for content in article_content):
+        if full_text:
             base_name = os.path.splitext(filename)[0].split(".")[0]
             txt_file_path = os.path.join(output_folder, base_name + ".txt")
             with open(txt_file_path, 'w', encoding='utf-8') as txtfile:
