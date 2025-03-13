@@ -6,11 +6,18 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
+import re
 
 
 class TermediaPipeline:
     def process_item(self, item, spider):
+        pattern = r"\(([^)]+)\)"
+
         adapter = ItemAdapter(item)
         if adapter.get("title"):
             adapter["title"] = " ".join(adapter["title"]).strip()
+
+        if adapter.get("license"):
+            adapter["license"]= re.findall(pattern, adapter["license"])[0]
+
         return item

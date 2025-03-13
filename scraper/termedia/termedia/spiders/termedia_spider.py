@@ -62,23 +62,32 @@ class TermediaSpiderSpider(scrapy.Spider):
             # yield {"type": "list_of_articles", "url": response.url, "articles": len(articles)}
             for article in articles:
                 title = article.css("h2::text").getall()
-                url = article.css("a.magFullT::attr(href)").get()
+                #url = article.css("a.magFullT::attr(href)").get()
                 # list of pdf articles
-                if url.endswith(".pdf"):
-                    # relative url
-                    if url.startswith("/"):
-                        base_url = urlparse(response.url).netloc
-                        scheme = urlparse(response.url).scheme
-                        url = scheme + "://" + base_url + url
-                    item = TermediaItem()
-                    item["type"] = "article_pdf"
-                    item["file_urls"] = [url]
-                    item["title"] = title
-                    yield item
-                # list of article pages
-                elif url:
-                    yield response.follow(url, self.parse_article, meta={"title": title})
-    
+                # if url.endswith(".pdf"):
+                #     # relative url
+                #     if url.startswith("/"):
+                #         base_url = urlparse(response.url).netloc
+                #         scheme = urlparse(response.url).scheme
+                #         url = scheme + "://" + base_url + url
+                #     item = TermediaItem()
+                #     item["type"] = "article_pdf"
+                #     item["file_urls"] = [url]
+                #     item["title"] = title
+                #     yield item
+                # # list of article pages
+                # elif url:
+                #    yield response.follow(url, self.parse_article, meta={"title": title})
+
+                url = response.css("div.magArticle a::attr(href)").get()
+                yield response.follow(url, self.parse_view, meta={"title": title})
+
+    def parse_view(self, response):
+        url=response.css("a.darkButton::attr(href)").get()
+        title = response.meta.get("title")
+
+        yield response.follow(url, self.parse_article, meta={"title": title})
+
     def parse_article(self, response):
         pdf_url = response.css("div.articlePDF").css("a::attr(href)").get()
         # relative url
@@ -91,5 +100,6 @@ class TermediaSpiderSpider(scrapy.Spider):
         item["type"] = "article_pdf"
         item["file_urls"] = [pdf_url]
         item["title"] = title
+        item["license"] = response.css("div.regulationsInfo ::text").get()
         yield item
                 
