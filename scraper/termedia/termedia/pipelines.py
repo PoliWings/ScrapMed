@@ -11,13 +11,16 @@ import re
 
 class TermediaPipeline:
     def process_item(self, item, spider):
-        pattern = r"\(([^)]+)\)"
+        pattern = r'\(CC ([\w\-]+) \d+\.\d+\)'
 
         adapter = ItemAdapter(item)
         if adapter.get("title"):
             adapter["title"] = " ".join(adapter["title"]).strip()
 
         if adapter.get("license"):
-            adapter["license"]= re.findall(pattern, adapter["license"])[0]
+            match = re.search(r'\(CC ([\w\-]+) (\d+\.\d+)\)', adapter["license"])
+
+            if match:
+                adapter["license"]= "CC " + " ".join(match.groups())
 
         return item

@@ -64,7 +64,7 @@ ROBOTSTXT_OBEY = True
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     "termedia.pipelines.TermediaPipeline": 300,
-    #"scrapy.pipelines.files.FilesPipeline": 1,
+    "scrapy.pipelines.files.FilesPipeline": 1,
 }
 
 FILES_STORE = "pdf"
