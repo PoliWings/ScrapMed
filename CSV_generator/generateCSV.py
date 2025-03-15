@@ -2,7 +2,14 @@ import os
 import json
 import csv
 import pathlib
-from time import sleep
+
+UNALLOWED_LICENSES = ['CC BY-ND', 'CC BY-NC-ND']
+
+def check_license(license):
+    for unallowed_license in UNALLOWED_LICENSES:
+        if unallowed_license in license:
+            return False
+    return True
 
 def search_json(json_data, filename):
     for item in json_data:
@@ -21,6 +28,7 @@ def search_json(json_data, filename):
 def generate_csv(input_folder, input_json, output_csv):
     files = [f for f in os.listdir(input_folder) if f.lower().endswith(".txt")]
     num_files = len(files)
+    deleted_files = 0
     print(f"Found {num_files} files")
     with open(output_csv, 'w', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.writer(csv_file)
@@ -37,8 +45,13 @@ def generate_csv(input_folder, input_json, output_csv):
                     url = ""
                 if license == None:
                     license = ""
-                csv_writer.writerow([filename, title, url, license])
-                print(f"\rProcessed {idx + 1}/{num_files} files", end="")
+                if check_license(license):
+                    csv_writer.writerow([filename, title, url, license])
+                else:
+                    print(f"\r{filename} has unallowed license: {license}. DELETING")
+                    os.remove(os.path.join(input_folder, filename))
+                    deleted_files += 1
+                print(f"\rProcessed {idx + 1}/{num_files} files | {deleted_files} deleted", end="")
 
 
 if __name__ == "__main__":
