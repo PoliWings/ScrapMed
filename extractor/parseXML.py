@@ -12,12 +12,19 @@ DetectorFactory.seed = 0
 
 MIN_CONTENT_LENGTH = 500
 EXCLUDED_PHRASE = "wszelkie prawa zastrzeżone"
+MAX_SPACE_RATIO = 0.18
 
 def process_divs(element, ns, stop_event):
     text_content = ""
     for div in element.xpath('.//tei:div', namespaces=ns):
         div_text = " ".join(div.itertext()).strip()
         if div_text:
+            spaces = div_text.count(' ')
+            chars = len(div_text) + 1
+            spaces_ratio = spaces / chars
+            if spaces_ratio > MAX_SPACE_RATIO:
+                print(f"Skipped div because of high spaces ratio: {spaces_ratio}, chars: {chars}")
+                continue
             sentences = re.split(r'(?<=[.!?"])\s', div_text)
             for sentence in sentences:
                 try:
