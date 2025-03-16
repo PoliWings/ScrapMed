@@ -8,3 +8,4 @@ output
 *.json
 pdf
 *.log
+*.csv
