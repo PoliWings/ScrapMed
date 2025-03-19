@@ -8,4 +8,5 @@
     ```bash
     python generateCSV.py
     ```
+    Use the `-x` flag to copy .xml files corresponding to the rows added to csv file. They will be copied from grobid output (`../grobid/output`) to `xml` folder. Useful for debug purposes.
 4. Result file will be saved as `output.csv`
