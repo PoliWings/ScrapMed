@@ -13,3 +13,4 @@ class TermediaItem(scrapy.Item):
     file_urls = scrapy.Field()
     files = scrapy.Field()
     title = scrapy.Field()
+    license = scrapy.Field()
