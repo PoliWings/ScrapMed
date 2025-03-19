@@ -17,6 +17,8 @@ MAX_SPACE_RATIO = 0.18
 def process_divs(element, ns, stop_event):
     text_content = ""
     for div in element.xpath('.//tei:div', namespaces=ns):
+        for ref in div.xpath('.//tei:ref', namespaces=ns):
+            ref.getparent().remove(ref)
         div_text = " ".join(div.itertext()).strip()
         if div_text:
             spaces = div_text.count(' ')
