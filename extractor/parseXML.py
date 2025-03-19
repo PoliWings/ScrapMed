@@ -12,6 +12,15 @@ DetectorFactory.seed = 0
 MIN_CONTENT_LENGTH = 500
 EXCLUDED_PHRASE = "wszelkie prawa zastrzeżone"
 MAX_SPACE_RATIO = 0.18
+MAX_SPACE_HEAD_RATIO = 0.25
+
+def check_space_ratio(text, ratio):
+    spaces = text.count(' ')
+    chars = len(text) + 1 
+    spaces_ratio = spaces / chars     
+    if spaces_ratio > ratio:
+        return True
+    return False
 
 
 def replace_characters(text):
@@ -40,15 +49,21 @@ def replace_characters(text):
 def process_divs(element, ns, stop_event):
     text_content = ""
     for div in element.xpath('.//tei:div', namespaces=ns):
+        for head in element.xpath('.//tei:head', namespaces=ns):
+            head_text = " ".join(head.itertext()).strip()
+            
+            if head_text:   
+                if check_space_ratio(head_text, MAX_SPACE_HEAD_RATIO):
+                    print(f"Skipped head because of high spaces ratio.")
+                    head.getparent().remove(head)
+                    continue
+
         for ref in div.xpath('.//tei:ref', namespaces=ns):
             ref.getparent().remove(ref)
         div_text = " ".join(div.itertext()).strip()
         if div_text:
-            spaces = div_text.count(' ')
-            chars = len(div_text) + 1
-            spaces_ratio = spaces / chars
-            if spaces_ratio > MAX_SPACE_RATIO:
-                print(f"Skipped div because of high spaces ratio: {spaces_ratio}, chars: {chars}")
+            if check_space_ratio(div_text, MAX_SPACE_RATIO):
+                print(f"Skipped div because of high spaces ratio.")
                 continue
             sentences = re.split(r'(?<=[.!?"])\s', div_text)
             for sentence in sentences:
