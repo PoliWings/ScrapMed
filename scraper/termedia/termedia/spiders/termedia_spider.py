@@ -62,34 +62,46 @@ class TermediaSpiderSpider(scrapy.Spider):
             # yield {"type": "list_of_articles", "url": response.url, "articles": len(articles)}
             for article in articles:
                 title = article.css("h2::text").getall()
-                url = article.css("a.magFullT::attr(href)").get()
-                # list of pdf articles
-                if url.endswith(".pdf"):
-                    # relative url
-                    if url.startswith("/"):
-                        base_url = urlparse(response.url).netloc
-                        scheme = urlparse(response.url).scheme
-                        url = scheme + "://" + base_url + url
-                    item = TermediaItem()
-                    item["type"] = "article_pdf"
-                    item["file_urls"] = [url]
-                    item["title"] = title
-                    yield item
-                # list of article pages
-                elif url:
-                    yield response.follow(url, self.parse_article, meta={"title": title})
-    
+                url = article.css("a.magArticleTitle::attr(href)").get()
+
+                if url is None:
+                    url = article.css("div.magArticle a::attr(href)").get()
+                elif url is None:
+                    url = article.css("a.abstractFullText.dirLeft::attr(href)").get()
+
+                yield response.follow(url, self.parse_article, meta={"title": title})
+
     def parse_article(self, response):
-        pdf_url = response.css("div.articlePDF").css("a::attr(href)").get()
-        # relative url
-        if pdf_url.startswith("/"):
-            base_url = urlparse(response.url).netloc
-            scheme = urlparse(response.url).scheme
-            pdf_url = scheme + "://" + base_url + pdf_url
         title = response.meta.get("title")
-        item = TermediaItem()
-        item["type"] = "article_pdf"
-        item["file_urls"] = [pdf_url]
-        item["title"] = title
-        yield item
+        pdf_url = response.css("a.darkButton::attr(href)").get()
+
+        if not pdf_url is None:
+            if pdf_url.startswith("/"):
+                base_url = urlparse(response.url).netloc
+                scheme = urlparse(response.url).scheme
+                pdf_url = scheme + "://" + base_url + pdf_url
                 
+                yield response.follow(pdf_url, self.parse_article, meta={"title": title})
+        else:       
+            pdf_url = response.css("div.articlePDF").css("a::attr(href)").get()
+
+            if pdf_url is None:
+                pdf_url = response.css("a.abstractFullText.dirLeft::attr(href)").get()
+
+            # relative url
+            if pdf_url.startswith("/"):
+                base_url = urlparse(response.url).netloc
+                scheme = urlparse(response.url).scheme
+                pdf_url = scheme + "://" + base_url + pdf_url
+
+            license = response.css("div.regulationsInfo::text").get()
+
+            if license is None:
+                license = response.css("div.em-09.pad-top-15::text").get()
+
+            item = TermediaItem()
+            item["type"] = "article_pdf"
+            item["file_urls"] = [pdf_url]
+            item["title"] = title
+            item["license"] = license
+            yield item
