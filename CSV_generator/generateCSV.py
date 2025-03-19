@@ -2,12 +2,14 @@ import os
 import json
 import csv
 import pathlib
+import sys
+import shutil
 
 UNALLOWED_LICENSES = ['CC BY-ND', 'CC BY-NC-ND']
 
 def check_license(license):
     if not license:
-        return True
+        return False
     return all(unallowed not in license for unallowed in UNALLOWED_LICENSES)
 
 def normalize_url(url):
@@ -24,7 +26,7 @@ def search_json(json_data, filename):
             return title, url, license
     return "", "", ""
 
-def generate_csv(input_folder, input_json, output_csv):
+def generate_csv(input_folder, input_json, output_csv, copy_used_xmls, input_xml_folder, output_xml_folder):
     files = [f for f in os.listdir(input_folder) if f.lower().endswith(".txt")]
     num_files = len(files)
     deleted_files = 0
@@ -39,6 +41,11 @@ def generate_csv(input_folder, input_json, output_csv):
         title, url, license = search_json(json_data, filename)
         if check_license(license):
             results.append([filename, title, url, license])
+            if copy_used_xmls:
+                xml_source = os.path.join(input_xml_folder, filename.replace(".txt", ".grobid.tei.xml"))
+                xml_dest = os.path.join(output_xml_folder, filename.replace(".txt", ".grobid.tei.xml"))
+                if os.path.exists(xml_source):
+                    shutil.copy(xml_source, xml_dest)                   
         else:
             print(f"\r{filename} has unallowed license: {license}. DELETING")
             os.remove(os.path.join(input_folder, filename))
@@ -58,4 +65,11 @@ if __name__ == "__main__":
     input_folder = "../extractor/parsed"
     input_json = "../scraper/termedia/output.json"
     output_csv = "output.csv"
-    generate_csv(input_folder, input_json, output_csv)
+    input_xml_folder = "../grobid/output"
+    output_xml_folder = "xml"
+    copy_used_xmls = False
+    if "-x" in sys.argv:
+        print("Copying used XML files")
+        copy_used_xmls = True
+        os.makedirs(output_xml_folder, exist_ok=True)
+    generate_csv(input_folder, input_json, output_csv, copy_used_xmls, input_xml_folder, output_xml_folder)
