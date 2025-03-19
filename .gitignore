@@ -5,6 +5,7 @@ __pycache__
 corrupted
 input
 output
+parsed
 *.json
 pdf
 *.log
