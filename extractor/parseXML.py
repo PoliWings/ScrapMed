@@ -22,6 +22,30 @@ def check_space_ratio(text, ratio):
         return True
     return False
 
+
+def replace_characters(text):
+    # windows-1252 to windows-1250
+    text = (text.replace("¹", "ą")
+            .replace("ae", "ć")
+            .replace("ê", "ę")
+            .replace("³", "ł")
+            .replace("ñ", "ń")
+            # .replace("ó", "ó")
+            .replace("oe", "ś")
+            .replace("Ÿ", "ź")
+            .replace("¿", "ż")
+            .replace("¥", "Ą")
+            .replace("AE", "Ć")
+            .replace("Ê", "Ę")
+            .replace("£", "Ł")
+            .replace("Ñ", "Ń")
+            # .replace("Ó", "Ó")
+            .replace("OE", "Ś")
+            # .replace("", "Ź")
+            .replace("¯", "Ż"))
+    return text
+
+
 def process_divs(element, ns, stop_event):
     text_content = ""
     for div in element.xpath('.//tei:div', namespaces=ns):
@@ -50,10 +74,10 @@ def process_divs(element, ns, stop_event):
                             text_content += sentence.strip() + " "
                 except Exception as e:
                     print(f"Language detection failed for sentence: {e}")
-            if text_content: 
+            if text_content:
                 text_content += "\n"
 
-    return text_content.strip()
+    return replace_characters(text_content.strip())
 
 
 def process_file(filename, input_folder, output_folder, ns, stop_event):
@@ -80,12 +104,12 @@ def process_file(filename, input_folder, output_folder, ns, stop_event):
 
         if stop_event.is_set():
             return
-        
+
         full_text = "\n".join(article_content).strip()
         if len(full_text) < MIN_CONTENT_LENGTH:
             print(f"Skipped {filename} because content is too short.")
             return None
-        
+
         if EXCLUDED_PHRASE in full_text.lower():
             print(f"Skipped {filename} because it contains restricted rights notice.")
             return None
